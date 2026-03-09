@@ -66,4 +66,18 @@ contract EvictionVaultTest is Test {
         assertEq(newConfirmations, 2);
         assertEq(newExecutionTime, block.timestamp + 1 hours);
     }
+
+    /* ---------------------------------------------------------- */
+    /* ---------------------SECURITY TESTS----------------------- */
+    /* ---------------------------------------------------------- */
+
+    function test_Revert_WithdrawExceedsLimit() public {
+        vm.startPrank(user);
+        vault.deposit{value: 10 ether}();
+
+        // 1.1 ether > 10% of 10 ether
+        vm.expectRevert(VaultErrors.WithdrawLimitExceeded.selector);
+        vault.withdraw(1.1 ether);
+        vm.stopPrank();
+    }
 }
