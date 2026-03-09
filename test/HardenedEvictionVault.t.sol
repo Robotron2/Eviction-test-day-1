@@ -104,4 +104,20 @@ contract EvictionVaultTest is Test {
 
         vm.stopPrank();
     }
+
+    function test_Revert_UnauthorizedSubmit() public {
+        // If !notOwner, expect revert
+        vm.prank(user);
+        vm.expectRevert(VaultErrors.NotOwner.selector);
+        vault.submitTransaction(address(0xBAD), 1 ether, "");
+    }
+
+    function test_Revert_ConfirmTwice() public {
+        vm.prank(owner1);
+        uint256 txId = vault.submitTransaction(address(0xABC), 0, "");
+
+        vm.prank(owner1);
+        vm.expectRevert(VaultErrors.AlreadyConfirmed.selector);
+        vault.confirmTransaction(txId);
+    }
 }
