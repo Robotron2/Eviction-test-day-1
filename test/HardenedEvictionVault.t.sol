@@ -24,4 +24,27 @@ contract EvictionVaultTest is Test {
         vm.deal(user, 100 ether);
         vm.deal(address(vault), 50 ether); // Provide liquidity for claims
     }
+
+    /* ---------------------------------------------------------- */
+    /* ---------------------POSITIVE TESTS----------------------- */
+    /* ---------------------------------------------------------- */
+
+    function test_DepositUpdatesBalance() public {
+        vm.prank(user);
+        vault.deposit{value: 10 ether}();
+
+        assertEq(vault.balances(user), 10 ether);
+        assertEq(vault.totalVaultValue(), 10 ether);
+    }
+
+    function test_WithdrawWithinLimit() public {
+        vm.startPrank(user);
+        vault.deposit{value: 10 ether}();
+
+        // 10% limit
+        vault.withdraw(1 ether);
+
+        assertEq(vault.balances(user), 9 ether);
+        vm.stopPrank();
+    }
 }
