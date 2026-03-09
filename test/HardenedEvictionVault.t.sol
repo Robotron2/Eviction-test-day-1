@@ -55,8 +55,8 @@ contract EvictionVaultTest is Test {
         (address to,,, uint256 confirmations, uint256 executionTime, bool executed) = vault.transactions(txId);
 
         assertEq(to, address(0xABC));
-        assertEq(confirmations, 1); // submitTransaction confirms for the sender automatically
-        assertEq(executionTime, 0); // Threshold not met yet
+        assertEq(confirmations, 1);
+        assertEq(executionTime, 0);
         assertFalse(executed);
 
         vm.prank(owner2);
@@ -119,5 +119,33 @@ contract EvictionVaultTest is Test {
         vm.prank(owner1);
         vm.expectRevert(VaultErrors.AlreadyConfirmed.selector);
         vault.confirmTransaction(txId);
+    }
+
+    function test_Exploit_LimitBypassAttempt() public {
+        vm.startPrank(user);
+        vault.deposit{value: 1 ether}();
+
+        vault.deposit{value: 9 ether}();
+
+        vm.expectRevert(VaultErrors.WithdrawLimitExceeded.selector);
+        vault.withdraw(1.1 ether);
+        vm.stopPrank();
+    }
+
+    function test_Exploit_ZeroWithdrawal() public {
+        vm.prank(user);
+        vault.withdraw(0);
+        assertEq(vault.balances(user), 0);
+    }
+
+    function test_Security_InvalidProofFails() public {
+        vm.store(address(vault), bytes32(uint256(6)), keccak256("real_root"));
+
+        bytes32[] memory fakeProof = new bytes32[](1);
+        fakeProof[0] = keccak256("fake_node");
+
+        vm.prank(user);
+        vm.expectRevert(VaultErrors.InvalidProof.selector);
+        vault.claim(fakeProof, 1 ether);
     }
 }
