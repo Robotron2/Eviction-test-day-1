@@ -47,4 +47,23 @@ contract EvictionVaultTest is Test {
         assertEq(vault.balances(user), 9 ether);
         vm.stopPrank();
     }
+
+    function test_MultisigFlow_SubmissionAndConfirmation() public {
+        vm.prank(owner1);
+        uint256 txId = vault.submitTransaction(address(0xABC), 1 ether, "");
+
+        (address to,,, uint256 confirmations, uint256 executionTime, bool executed) = vault.transactions(txId);
+
+        assertEq(to, address(0xABC));
+        assertEq(confirmations, 1); // submitTransaction confirms for the sender automatically
+        assertEq(executionTime, 0); // Threshold not met yet
+        assertFalse(executed);
+
+        vm.prank(owner2);
+        vault.confirmTransaction(txId);
+
+        (,,, uint256 newConfirmations, uint256 newExecutionTime,) = vault.transactions(txId);
+        assertEq(newConfirmations, 2);
+        assertEq(newExecutionTime, block.timestamp + 1 hours);
+    }
 }
