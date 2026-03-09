@@ -58,4 +58,12 @@ contract HardenedEvictionVault is MultisigCore, MerkleAirdrop, TimelockExecutor,
 
         emit Claim(msg.sender, amount);
     }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 }

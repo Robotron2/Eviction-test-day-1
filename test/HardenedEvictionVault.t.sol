@@ -148,4 +148,22 @@ contract EvictionVaultTest is Test {
         vm.expectRevert(VaultErrors.InvalidProof.selector);
         vault.claim(fakeProof, 1 ether);
     }
+
+    function test_Revert_UnauthorizedPause() public {
+        vm.prank(user);
+        vm.expectRevert(); // Should revert because user is not an owner
+        vault.pause();
+    }
+
+    function test_Revert_NonOwnerSetsRoot() public {
+        vm.prank(user);
+        (bool success,) = address(vault).call(abi.encodeWithSignature("setMerkleRoot(bytes32)", bytes32(0)));
+        assertFalse(success);
+    }
+
+    function test_Revert_DirectEmergencyWithdraw() public {
+        vm.prank(user);
+        (bool success,) = address(vault).call(abi.encodeWithSignature("emergencyWithdrawAll()"));
+        assertFalse(success);
+    }
 }
