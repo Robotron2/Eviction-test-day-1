@@ -80,4 +80,28 @@ contract EvictionVaultTest is Test {
         vault.withdraw(1.1 ether);
         vm.stopPrank();
     }
+
+    function test_Revert_DoubleClaim() public {
+        uint256 amount = 5 ether;
+
+        // 1. Setup Leaf and Root
+        bytes32 leaf = keccak256(abi.encodePacked(user, amount));
+        bytes32 root = leaf;
+        bytes32[] memory proof = new bytes32[](0);
+
+        // 2. Set the Merkle Root in storage
+        vm.store(address(vault), bytes32(uint256(6)), root);
+
+        // 3. Perform the claims
+        vm.startPrank(user);
+
+        // First claim: Should succeed
+        vault.claim(proof, amount);
+
+        // Second claim: Should revert
+        vm.expectRevert(VaultErrors.AlreadyClaimed.selector);
+        vault.claim(proof, amount);
+
+        vm.stopPrank();
+    }
 }
