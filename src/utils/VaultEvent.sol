@@ -10,6 +10,7 @@ event Execution(uint256 indexed txId);
 
 event MerkleRootSet(bytes32 indexed root);
 event Claim(address indexed user, uint256 amount);
+event RootUpdated(bytes32 root);
 
 event Paused(address indexed owner);
 event Unpaused(address indexed owner);
